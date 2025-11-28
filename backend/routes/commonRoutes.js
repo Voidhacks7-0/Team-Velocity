@@ -1,6 +1,7 @@
 // routes/commonRoutes.js - Routes any logged-in user can access
 const express = require('express');
 const { authToken, roleCheck } = require('../middleware/authMiddleware');
+const User = require('../model/User');
 
 const router = express.Router();
 
@@ -152,6 +153,75 @@ router.get('/', authToken, (req, res) => {
       role: req.user.role
     }
   });
+});
+
+// Profile details for current user
+router.get('/profile', authToken, (req, res) => {
+  res.json({
+    id: req.user.id,
+    name: req.user.name,
+    email: req.user.email,
+    role: req.user.role,
+    phone: req.user.phone || '',
+    department: req.user.department || '',
+    avatarUrl: req.user.avatarUrl || '',
+    preferences: req.user.preferences || { language: 'en', theme: 'light' },
+    createdAt: req.user.createdAt,
+    updatedAt: req.user.updatedAt
+  });
+});
+
+router.put('/profile', authToken, async (req, res) => {
+  const {
+    name,
+    phone = '',
+    department = '',
+    avatarUrl = '',
+    preferences = {}
+  } = req.body;
+
+  const updates = {
+    ...(name ? { name } : {}),
+    phone,
+    department,
+    avatarUrl,
+    preferences: {
+      language: preferences.language || req.user.preferences?.language || 'en',
+      theme: preferences.theme || req.user.preferences?.theme || 'light'
+    },
+    updatedAt: Date.now()
+  };
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true
+    }).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    req.user = updatedUser;
+
+    res.json({
+      message: 'Profile updated successfully',
+      profile: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone || '',
+        department: updatedUser.department || '',
+        avatarUrl: updatedUser.avatarUrl || '',
+        preferences: updatedUser.preferences || { language: 'en', theme: 'light' },
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update profile', error: error.message });
+  }
 });
 
 // GET /common/dashboard - Provide summary cards + key lists
