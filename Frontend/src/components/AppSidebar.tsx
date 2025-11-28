@@ -11,6 +11,7 @@ import {
   GraduationCap,
   Zap,
   MessageCircle,
+  Rocket,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -36,8 +37,9 @@ const navItems = [
   { title: "Events", url: "/events", icon: CalendarDays },
   { title: "Resources", url: "/resources", icon: BookOpen },
   { title: "Groups", url: "/groups", icon: Users },
-  { title: "Events", url: "/events", icon: Zap },
-  { title: "Community", url: "/community", icon: MessageCircle },
+  { title: "Forums", url: "/forums", icon: MessageCircle },
+  { title: "Projects", url: "/projects", icon: Rocket },
+  { title: "Chat", url: "/chat", icon: Zap },
   { title: "Profile", url: "/profile", icon: User },
 ];
 

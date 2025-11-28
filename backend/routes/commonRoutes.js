@@ -7,9 +7,7 @@ const ResourceRequest = require('../model/ResourceRequest');
 const Announcement = require('../model/Announcement');
 const Event = require('../model/Event');
 const Notification = require('../model/Notification');
-const Announcement = require('../model/Announcement');
-const Event = require('../model/Event');
-const Notification = require('../model/Notification');
+const Group = require('../model/Group');
 
 const router = express.Router();
 
@@ -293,15 +291,64 @@ router.get('/events', authToken, async (req, res) => {
   }
 });
 
-router.get('/groups', authToken, (req, res) => {
-  res.json({
-    groups: [],
-    myGroupIds: []
-  });
+router.get('/groups', authToken, async (req, res) => {
+  try {
+    const groups = await Group.find({ isPublic: true, status: 'active' })
+      .populate('creator', 'name email role avatarUrl')
+      .populate('members', 'name email role avatarUrl')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const myGroupIds = await Group.find({ members: req.user._id }).distinct('_id');
+
+    res.json({
+      groups: groups.map(g => ({
+        id: g._id,
+        name: g.name,
+        description: g.description,
+        group_type: g.groupType,
+        creator: {
+          id: g.creator._id,
+          full_name: g.creator.name,
+          email: g.creator.email,
+          role: g.creator.role,
+          avatar_url: g.creator.avatarUrl
+        },
+        member_count: g.members.length,
+        max_members: g.maxMembers,
+        tags: g.tags,
+        created_at: g.createdAt
+      })),
+      myGroupIds: myGroupIds.map(id => id.toString())
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load groups', error: error.message });
+  }
 });
 
-router.post('/groups/:groupId/join', authToken, (req, res) => {
-  res.status(501).json({ message: 'Groups module coming soon' });
+router.post('/groups/:groupId/join', authToken, async (req, res) => {
+  try {
+    const group = await Group.findById(req.params.groupId);
+
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found' });
+    }
+
+    if (group.members.some(m => m.equals(req.user._id))) {
+      return res.status(400).json({ message: 'Already a member of this group' });
+    }
+
+    if (group.members.length >= group.maxMembers) {
+      return res.status(400).json({ message: 'Group is full' });
+    }
+
+    group.members.push(req.user._id);
+    await group.save();
+
+    res.json({ message: 'Successfully joined group' });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to join group', error: error.message });
+  }
 });
 
 router.get('/notifications', authToken, async (req, res) => {

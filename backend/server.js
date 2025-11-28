@@ -6,12 +6,22 @@ const cors = require('cors');
 const morgan = require('morgan');
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const facultyRoutes = require('./routes/facultyRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const commonRoutes = require('./routes/commonRoutes');
-const eventRoutes = require('./routes/eventRoutes');
+try {
+  var authRoutes = require('./routes/authRoutes');
+  var studentRoutes = require('./routes/studentRoutes');
+  var facultyRoutes = require('./routes/facultyRoutes');
+  var adminRoutes = require('./routes/adminRoutes');
+  var commonRoutes = require('./routes/commonRoutes');
+  var eventRoutes = require('./routes/eventRoutes');
+  var groupRoutes = require('./routes/groupRoutes');
+  var forumRoutes = require('./routes/forumRoutes');
+  var projectRoutes = require('./routes/projectRoutes');
+  var chatRoutes = require('./routes/chatRoutes');
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading routes:', error);
+  process.exit(1);
+}
 
 const app = express();
 
@@ -25,12 +35,24 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
+// Basic route to test server
+app.get('/', (req, res) => {
+  res.json({ message: 'Campus Connect API is running!' });
+});
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/student', studentRoutes);
 app.use('/faculty', facultyRoutes);
 app.use('/admin', adminRoutes);
 app.use('/common', commonRoutes);
+app.use('/events', eventRoutes);
+app.use('/groups', groupRoutes);
+app.use('/forums', forumRoutes);
+app.use('/projects', projectRoutes);
+app.use('/chats', chatRoutes);
+
+// Logging middleware (after routes)
 app.use((req, res, next) => {
   console.log(`[Request] ${req.method} ${req.originalUrl}`, {
     body: req.body,
@@ -39,11 +61,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/events', eventRoutes);
-
-// Basic route to test server
-app.get('/', (req, res) => {
-  res.json({ message: 'Campus Connect API is running!' });
+// 404 handler (must be last)
+app.use((req, res) => {
+  console.log(`[404] ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // Start server
