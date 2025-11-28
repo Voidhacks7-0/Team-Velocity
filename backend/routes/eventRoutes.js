@@ -1,5 +1,4 @@
 const express = require('express');
-const express = require('express');
 const mongoose = require('mongoose');
 const { authToken, roleCheck } = require('../middleware/authMiddleware');
 const Event = require('../model/Event');

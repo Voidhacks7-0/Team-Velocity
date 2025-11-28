@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const morgan = require('morgan');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -17,6 +18,7 @@ const app = express();
 // Middleware
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON request bodies
+app.use(morgan('dev')); // Log requests to console
 
 // Database connection
 mongoose.connect(process.env.MONGO_URI)
@@ -29,6 +31,14 @@ app.use('/student', studentRoutes);
 app.use('/faculty', facultyRoutes);
 app.use('/admin', adminRoutes);
 app.use('/common', commonRoutes);
+app.use((req, res, next) => {
+  console.log(`[Request] ${req.method} ${req.originalUrl}`, {
+    body: req.body,
+    user: req.user ? { id: req.user._id, role: req.user.role } : null
+  });
+  next();
+});
+
 app.use('/events', eventRoutes);
 
 // Basic route to test server
