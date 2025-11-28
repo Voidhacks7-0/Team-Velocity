@@ -42,6 +42,21 @@ const resourceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  department: {
+    type: String,
+    enum: ['CSE', 'IT', 'AD', 'Civil', 'Mechanical', 'General'],
+    default: 'General'
+  },
+  assignedClass: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Class',
+    default: null
+  },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

@@ -17,6 +17,8 @@ try {
   var forumRoutes = require('./routes/forumRoutes');
   var projectRoutes = require('./routes/projectRoutes');
   var chatRoutes = require('./routes/chatRoutes');
+  var classRoutes = require('./routes/classRoutes');
+  var facultyClassRoutes = require('./routes/facultyClassRoutes');
   console.log('✅ All routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading routes:', error);
@@ -44,6 +46,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/student', studentRoutes);
 app.use('/faculty', facultyRoutes);
+app.use('/faculty', facultyClassRoutes);
 app.use('/admin', adminRoutes);
 app.use('/common', commonRoutes);
 app.use('/events', eventRoutes);
@@ -51,6 +54,7 @@ app.use('/groups', groupRoutes);
 app.use('/forums', forumRoutes);
 app.use('/projects', projectRoutes);
 app.use('/chats', chatRoutes);
+app.use('/classes', classRoutes);
 
 // Logging middleware (after routes)
 app.use((req, res, next) => {

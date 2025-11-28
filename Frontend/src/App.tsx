@@ -18,6 +18,8 @@ import Forums from "./pages/Forums";
 import ForumPost from "./pages/ForumPost";
 import Projects from "./pages/Projects";
 import Chat from "./pages/Chat";
+import Classes from "./pages/Classes";
+import FacultyClasses from "./pages/FacultyClasses";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/projects" element={<ProtectedRoute><Layout><Projects /></Layout></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
+            <Route path="/classes" element={<ProtectedRoute><Layout><Classes /></Layout></ProtectedRoute>} />
+            <Route path="/my-classes" element={<ProtectedRoute><Layout><FacultyClasses /></Layout></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

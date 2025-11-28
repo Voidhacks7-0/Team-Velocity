@@ -30,18 +30,29 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const navItems = [
-  { title: "Dashboard", url: "/", icon: Home },
-  { title: "Announcements", url: "/announcements", icon: Bell },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
-  { title: "Events", url: "/events", icon: CalendarDays },
-  { title: "Resources", url: "/resources", icon: BookOpen },
-  { title: "Groups", url: "/groups", icon: Users },
-  { title: "Forums", url: "/forums", icon: MessageCircle },
-  { title: "Projects", url: "/projects", icon: Rocket },
-  { title: "Chat", url: "/chat", icon: Zap },
-  { title: "Profile", url: "/profile", icon: User },
-];
+const getNavItems = (role: string) => {
+  const baseItems = [
+    { title: "Dashboard", url: "/", icon: Home },
+    { title: "Announcements", url: "/announcements", icon: Bell },
+    { title: "Calendar", url: "/calendar", icon: Calendar },
+    { title: "Events", url: "/events", icon: CalendarDays },
+    { title: "Resources", url: "/resources", icon: BookOpen },
+    { title: "Groups", url: "/groups", icon: Users },
+    { title: "Forums", url: "/forums", icon: MessageCircle },
+    { title: "Projects", url: "/projects", icon: Rocket },
+    { title: "Chat", url: "/chat", icon: Zap },
+  ];
+
+  // Role-specific items
+  if (role === "admin") {
+    baseItems.splice(5, 0, { title: "Classes", url: "/classes", icon: GraduationCap });
+  } else if (role === "faculty") {
+    baseItems.splice(5, 0, { title: "My Classes", url: "/my-classes", icon: GraduationCap });
+  }
+
+  baseItems.push({ title: "Profile", url: "/profile", icon: User });
+  return baseItems;
+};
 
 export function AppSidebar() {
   const { open } = useSidebar();
@@ -76,7 +87,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {getNavItems(user?.role || "").map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} end className="transition-smooth">

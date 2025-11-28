@@ -6,6 +6,7 @@ const ResourceCategory = require('../model/ResourceCategory');
 const Resource = require('../model/Resource');
 const ResourceRequest = require('../model/ResourceRequest');
 const ResourceLog = require('../model/ResourceLog');
+const User = require('../model/User');
 
 const router = express.Router();
 
@@ -404,6 +405,45 @@ router.get('/resource-logs', adminOnly, async (req, res) => {
     res.json(logs);
   } catch (error) {
     res.status(500).json({ message: 'Unable to fetch resource logs', error: error.message });
+  }
+});
+
+/**
+ * Users Management
+ */
+router.get('/users', authToken, roleCheck('admin'), async (req, res) => {
+  try {
+    const { role, department } = req.query;
+    const filter = {};
+
+    if (role) filter.role = role;
+    if (department) filter.department = department;
+
+    console.log(`[Admin] Fetching users with filter:`, filter);
+    console.log(`[Admin] Query params:`, req.query);
+    console.log(`[Admin] User making request:`, req.user?.email, req.user?.role);
+
+    const users = await User.find(filter)
+      .select('-password')
+      .sort({ name: 1 });
+
+    console.log(`[Admin] Found ${users.length} users`);
+
+    const formattedUsers = users.map(user => ({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department || '',
+      phone: user.phone || '',
+      avatarUrl: user.avatarUrl || ''
+    }));
+
+    res.json(formattedUsers);
+  } catch (error) {
+    console.error('[Admin] Error fetching users:', error);
+    console.error('[Admin] Error stack:', error.stack);
+    res.status(500).json({ message: 'Unable to fetch users', error: error.message });
   }
 });
 
