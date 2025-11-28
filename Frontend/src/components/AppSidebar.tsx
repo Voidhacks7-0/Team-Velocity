@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  Home,
   Bell,
   Calendar,
   BookOpen,
@@ -9,6 +8,7 @@ import {
   Settings,
   LogOut,
   GraduationCap,
+  Home,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -27,6 +27,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Home } from "../../public/image.png"
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: Home },
