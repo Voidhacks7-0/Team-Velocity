@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Academic blue - trust, professionalism */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 15%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Primary - Deep academic blue */
+    --primary: 215 85% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Fresh teal for variety */
+    --secondary: 175 60% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted - Light grays for backgrounds */
+    --muted: 215 20% 96%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Accent - Warm amber for alerts/actions */
+    --accent: 35 100% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Success state */
+    --success: 145 65% 42%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning state */
+    --warning: 35 100% 55%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and inputs */
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 215 85% 35%;
+
+    /* Border radius */
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 215 30% 98%;
+    --sidebar-foreground: 215 25% 25%;
+    --sidebar-primary: 215 85% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 20% 94%;
+    --sidebar-accent-foreground: 215 25% 25%;
+    --sidebar-border: 215 20% 88%;
+    --sidebar-ring: 215 85% 35%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 85% 35%), hsl(195 85% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(35 100% 55%), hsl(25 100% 50%));
+    --gradient-subtle: linear-gradient(180deg, hsl(215 20% 98%), hsl(215 20% 96%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1);
+    --shadow-elevated: 0 20px 25px -5px hsl(215 25% 15% / 0.1), 0 10px 10px -5px hsl(215 25% 15% / 0.04);
+
+    /* Animation */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .dark {
+    --background: 215 30% 8%;
+    --foreground: 215 15% 92%;
+
+    --card: 215 25% 12%;
+    --card-foreground: 215 15% 92%;
+
+    --popover: 215 25% 12%;
+    --popover-foreground: 215 15% 92%;
+
+    --primary: 215 85% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 175 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 215 20% 16%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 35 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 145 65% 48%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 35 100% 60%;
+    --warning-foreground: 0 0% 100%;
+
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 215 85% 55%;
+
+    --sidebar-background: 215 30% 10%;
+    --sidebar-foreground: 215 15% 85%;
+    --sidebar-primary: 215 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 20% 16%;
+    --sidebar-accent-foreground: 215 15% 85%;
+    --sidebar-border: 215 20% 20%;
+    --sidebar-ring: 215 85% 55%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(215 85% 45%), hsl(195 85% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(35 100% 60%), hsl(25 100% 55%));
+    --gradient-subtle: linear-gradient(180deg, hsl(215 25% 10%), hsl(215 25% 12%));
+
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
+    --shadow-elevated: 0 20px 25px -5px hsl(0 0% 0% / 0.4), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl;
+  }
+
+  h2 {
+    @apply text-3xl;
+  }
+
+  h3 {
+    @apply text-2xl;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+}
