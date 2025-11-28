@@ -4,6 +4,7 @@ const { authToken, roleCheck } = require('../middleware/authMiddleware');
 const Event = require('../model/Event');
 const EventRegistration = require('../model/EventRegistration');
 const EventRegistrationLog = require('../model/EventRegistrationLog');
+const Notification = require('../model/Notification');
 
 const router = express.Router();
 
@@ -69,7 +70,7 @@ router.get('/', authToken, async (req, res) => {
  */
 router.post('/', authToken, roleCheck('admin'), async (req, res) => {
   try {
-    const { title, description, location, startsAt, endsAt, capacity } = req.body;
+    const { title, description, location, startsAt, endsAt, capacity, eventType = 'general' } = req.body;
 
     if (!title || !startsAt || !endsAt) {
       return res.status(400).json({ message: 'Title, start time, and end time are required' });
@@ -92,6 +93,15 @@ router.post('/', authToken, roleCheck('admin'), async (req, res) => {
       startsAt: startDate,
       endsAt: endDate,
       capacity: capacity || 0,
+      eventType,
+      createdBy: req.user._id
+    });
+    await Notification.create({
+      message: `New event: ${title}`,
+      description: description?.slice(0, 120),
+      type: 'event',
+      link: '/events',
+      entityId: event._id,
       createdBy: req.user._id
     });
 

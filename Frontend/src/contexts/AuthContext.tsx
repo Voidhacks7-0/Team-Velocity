@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: { name: string; email: string; password: string; role: Role }) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const TOKEN_KEY = "campusHub.token";
@@ -93,13 +94,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistAuth(data.token, data.user);
   };
 
+  const updateStoredUser = (updates: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const nextUser = { ...prev, ...updates };
+      localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   const signOut = async () => {
     clearAuth();
     navigate("/auth");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, signOut }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, signOut, updateUser: updateStoredUser }}>
       {children}
     </AuthContext.Provider>
   );

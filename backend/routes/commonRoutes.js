@@ -4,6 +4,12 @@ const mongoose = require('mongoose');
 const { authToken, roleCheck } = require('../middleware/authMiddleware');
 const Resource = require('../model/Resource');
 const ResourceRequest = require('../model/ResourceRequest');
+const Announcement = require('../model/Announcement');
+const Event = require('../model/Event');
+const Notification = require('../model/Notification');
+const Announcement = require('../model/Announcement');
+const Event = require('../model/Event');
+const Notification = require('../model/Notification');
 
 const router = express.Router();
 
@@ -106,139 +112,239 @@ router.post('/bookings', authToken, async (req, res) => {
   }
 });
 
-/**
- * The following placeholder routes still return static data.
- * They will be replaced with database-backed implementations
- * as the corresponding modules are built out.
- */
-
-const placeholderAnnouncements = [
-  {
-    id: 'ann-1',
-    title: 'Semester Kickoff Town Hall',
-    content: 'Join the leadership team for a live Q&A about spring initiatives.',
-    priority: 'high',
-    is_pinned: true,
-    created_at: new Date('2025-01-05T14:00:00Z').toISOString(),
-    author: {
-      full_name: 'Dean Harper',
-      role: 'admin'
-    }
+const formatAnnouncement = (doc) => ({
+  id: doc._id,
+  title: doc.title,
+  content: doc.content,
+  priority: doc.priority,
+  is_pinned: doc.isPinned,
+  created_at: doc.createdAt,
+  author: {
+    full_name: doc.authorName || doc.createdBy?.name || 'Campus Admin',
+    role: doc.authorRole || doc.createdBy?.role || 'admin'
   }
-];
-
-const placeholderEvents = [
-  {
-    id: 'event-1',
-    title: 'Capstone Demo Day',
-    description: 'Senior teams showcase prototypes and pitch to industry mentors.',
-    start_time: new Date('2025-01-12T15:00:00Z').toISOString(),
-    end_time: new Date('2025-01-12T18:00:00Z').toISOString(),
-    location: 'Innovation Lab',
-    event_type: 'workshop',
-    creator: { full_name: 'Innovation Office', role: 'faculty' }
-  }
-];
-
-const placeholderGroups = [
-  {
-    id: 'group-1',
-    name: 'AI Research Circle',
-    description: 'Weekly reading group to discuss breakthroughs in machine learning.',
-    group_type: 'Academic',
-    is_public: true,
-    creator: { full_name: 'Prof. Priya Patel' },
-    members: []
-  }
-];
-
-// bookings persist per server instance for demo purposes
-const bookings = [];
-
-const attachResource = (booking) => ({
-  ...booking,
-  resource: resources.find((resource) => resource.id === booking.resource_id) || null
 });
 
-// GET /common - Any logged-in user (student, faculty, or admin) can access
-router.get('/', authToken, (req, res) => {
-  res.json({
-    message: 'This is a common route accessible by all logged-in users',
-    user: {
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role
-    }
-  });
+const formatEvent = (doc) => ({
+  id: doc._id,
+  title: doc.title,
+  description: doc.description,
+  location: doc.location,
+  start_time: doc.startsAt,
+  end_time: doc.endsAt,
+  event_type: doc.eventType || 'general'
 });
 
 // GET /common/dashboard - Provide summary cards + key lists
-router.get('/dashboard', authToken, (req, res) => {
-  res.json({
-    stats: {
-      announcements: placeholderAnnouncements.length,
-      upcomingEvents: placeholderEvents.length,
-      activeBookings: 0,
-      myGroups: 0
-    },
-    recentAnnouncements: placeholderAnnouncements,
-    upcomingEvents: placeholderEvents
-  });
-});
-
-router.get('/announcements', authToken, (req, res) => {
-  res.json(placeholderAnnouncements);
-});
-
-router.post('/announcements', authToken, roleCheck('faculty', 'admin'), (req, res) => {
-  const { title, content, priority = 'normal', is_pinned = false } = req.body;
-
-  if (!title || !content) {
-    return res.status(400).json({ message: 'Title and content are required' });
+const serializeProfile = (userDoc) => ({
+  id: userDoc._id,
+  name: userDoc.name,
+  email: userDoc.email,
+  role: userDoc.role,
+  phone: userDoc.phone || '',
+  department: userDoc.department || '',
+  avatarUrl: userDoc.avatarUrl || '',
+  preferences: {
+    language: userDoc.preferences?.language || 'en',
+    theme: userDoc.preferences?.theme || 'light'
   }
-
-  const newAnnouncement = {
-    id: `ann-${Date.now()}`,
-    title,
-    content,
-    priority,
-    is_pinned,
-    created_at: new Date().toISOString(),
-    author: {
-      full_name: req.user.name,
-      role: req.user.role
-    }
-  };
-
-  placeholderAnnouncements.unshift(newAnnouncement);
-  res.status(201).json(newAnnouncement);
 });
 
-router.get('/events', authToken, (req, res) => {
-  res.json(placeholderEvents);
+router.get('/profile', authToken, (req, res) => {
+  res.json(serializeProfile(req.user));
+});
+
+router.put('/profile', authToken, async (req, res) => {
+  try {
+    const user = req.user;
+    const { name, phone, department, avatarUrl, preferences } = req.body;
+
+    if (!user.preferences) {
+      user.preferences = {};
+    }
+
+    if (name !== undefined) user.name = name;
+    if (phone !== undefined) user.phone = phone;
+    if (department !== undefined) user.department = department;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+    if (preferences) {
+      if (preferences.language !== undefined) {
+        user.preferences.language = preferences.language;
+      }
+      if (preferences.theme !== undefined) {
+        user.preferences.theme = preferences.theme;
+      }
+    }
+
+    await user.save();
+    res.json(serializeProfile(user));
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to update profile', error: error.message });
+  }
+});
+
+router.get('/dashboard', authToken, async (req, res) => {
+  try {
+    const now = new Date();
+    const weekAhead = new Date();
+    weekAhead.setDate(now.getDate() + 7);
+
+    const [recentAnnouncements, announcementsCount, upcomingEventsList, upcomingEventsCount, activeBookings] =
+      await Promise.all([
+        Announcement.find()
+          .sort({ isPinned: -1, createdAt: -1 })
+          .limit(3)
+          .populate('createdBy', 'name role'),
+        Announcement.countDocuments(),
+        Event.find({ startsAt: { $gte: now } })
+          .sort({ startsAt: 1 })
+          .limit(3),
+        Event.countDocuments({ startsAt: { $gte: now, $lte: weekAhead } }),
+        ResourceRequest.countDocuments({
+          requester: req.user._id,
+          status: { $in: ['pending', 'approved', 'issued'] }
+        })
+      ]);
+
+    res.json({
+      stats: {
+        announcements: announcementsCount,
+        upcomingEvents: upcomingEventsCount,
+        activeBookings,
+        myGroups: 0
+      },
+      recentAnnouncements: recentAnnouncements.map(formatAnnouncement),
+      upcomingEvents: upcomingEventsList.map(formatEvent)
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load dashboard data', error: error.message });
+  }
+});
+
+router.get('/announcements', authToken, async (req, res) => {
+  try {
+    const announcements = await Announcement.find()
+      .sort({ isPinned: -1, createdAt: -1 })
+      .populate('createdBy', 'name role');
+
+    res.json(announcements.map(formatAnnouncement));
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load announcements', error: error.message });
+  }
+});
+
+router.post('/announcements', authToken, roleCheck('faculty', 'admin'), async (req, res) => {
+  try {
+    const { title, content, priority = 'normal', is_pinned = false } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    const announcement = await Announcement.create({
+      title,
+      content,
+      priority,
+      isPinned: is_pinned,
+      createdBy: req.user._id,
+      authorName: req.user.name,
+      authorRole: req.user.role
+    });
+
+    const populated = await announcement.populate('createdBy', 'name role');
+    await Notification.create({
+      message: `New announcement: ${title}`,
+      description: content.slice(0, 120),
+      type: 'announcement',
+      link: '/announcements',
+      entityId: announcement._id,
+      createdBy: req.user._id
+    });
+    res.status(201).json(formatAnnouncement(populated));
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to create announcement', error: error.message });
+  }
+});
+
+router.get('/events', authToken, async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    const filter = {};
+
+    if (start) {
+      const startDate = new Date(start);
+      if (!Number.isNaN(startDate.getTime())) {
+        filter.startsAt = { ...filter.startsAt, $gte: startDate };
+      }
+    }
+
+    if (end) {
+      const endDate = new Date(end);
+      if (!Number.isNaN(endDate.getTime())) {
+        filter.startsAt = { ...filter.startsAt, $lte: endDate };
+      }
+    }
+
+    const events = await Event.find(filter).sort({ startsAt: 1 });
+    res.json(events.map(formatEvent));
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load events', error: error.message });
+  }
 });
 
 router.get('/groups', authToken, (req, res) => {
   res.json({
-    groups: placeholderGroups,
+    groups: [],
     myGroupIds: []
   });
 });
 
 router.post('/groups/:groupId/join', authToken, (req, res) => {
-  const { groupId } = req.params;
-  const group = placeholderGroups.find((item) => item.id === groupId);
+  res.status(501).json({ message: 'Groups module coming soon' });
+});
 
-  if (!group) {
-    return res.status(404).json({ message: 'Group not found' });
+router.get('/notifications', authToken, async (req, res) => {
+  try {
+    const notifications = await Notification.find()
+      .sort({ createdAt: -1 })
+      .limit(15)
+      .populate('createdBy', 'name role');
+
+    const formatted = notifications.map((doc) => ({
+      id: doc._id,
+      message: doc.message,
+      description: doc.description,
+      type: doc.type,
+      link: doc.link,
+      created_at: doc.createdAt,
+      createdBy: doc.createdBy ? { name: doc.createdBy.name, role: doc.createdBy.role } : null,
+      isRead: doc.readBy?.some((reader) => reader.equals(req.user._id)) || false
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load notifications', error: error.message });
   }
+});
 
-  if (group.members.includes(req.user.id)) {
-    return res.status(400).json({ message: 'Already a member of this group' });
+router.post('/notifications/:id/read', authToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid notification id' });
+    }
+
+    await Notification.findByIdAndUpdate(
+      id,
+      { $addToSet: { readBy: req.user._id } },
+      { new: true }
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to update notification', error: error.message });
   }
-
-  group.members.push(req.user.id);
-  res.json({ groupId: group.id });
 });
 
 module.exports = router;

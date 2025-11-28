@@ -14,6 +14,11 @@ const eventSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  eventType: {
+    type: String,
+    enum: ['general', 'workshop', 'meeting', 'class', 'deadline', 'exam'],
+    default: 'general'
+  },
   startsAt: {
     type: Date,
     required: true
