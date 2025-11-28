@@ -5,6 +5,7 @@ const { authToken, roleCheck } = require('../middleware/authMiddleware');
 const ResourceCategory = require('../model/ResourceCategory');
 const Resource = require('../model/Resource');
 const ResourceRequest = require('../model/ResourceRequest');
+const ResourceLog = require('../model/ResourceLog');
 
 const router = express.Router();
 
@@ -200,6 +201,31 @@ router.patch('/resources/:id', adminOnly, async (req, res) => {
   }
 });
 
+router.delete('/resources/:id', adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const resource = await Resource.findById(id);
+
+    if (!resource) {
+      return res.status(404).json({ message: 'Resource not found' });
+    }
+
+    const hasActiveLoans = await ResourceRequest.exists({
+      resource: id,
+      status: { $in: ['approved', 'issued'] }
+    });
+
+    if (hasActiveLoans) {
+      return res.status(400).json({ message: 'Cannot delete resource with active requests' });
+    }
+
+    await resource.deleteOne();
+    res.json({ message: 'Resource deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to delete resource', error: error.message });
+  }
+});
+
 /**
  * Resource Requests workflow
  */
@@ -290,6 +316,16 @@ router.patch('/resource-requests/:id/issue', adminOnly, async (req, res) => {
     request.adminNote = adminNote;
     await request.save();
 
+
+    await ResourceLog.create({
+      resource: resource._id,
+      requester: request.requester,
+      action: 'issued',
+      issueDate,
+      expectedReturnDate,
+      adminNote
+    });
+
     const populated = await request.populate({
       path: 'resource',
       populate: { path: 'category', select: 'name' }
@@ -330,6 +366,19 @@ router.patch('/resource-requests/:id/return', adminOnly, async (req, res) => {
     request.adminNote = adminNote;
     await request.save();
 
+
+    await ResourceLog.create({
+      resource: resource._id,
+      requester: request.requester,
+      action: 'returned',
+      issueDate: request.issueDate,
+      expectedReturnDate: request.expectedReturnDate,
+      returnDate: request.returnDate,
+      conditionOnReturn,
+      adminNote,
+      penalty
+    });
+
     const populated = await request.populate({
       path: 'resource',
       populate: { path: 'category', select: 'name' }
@@ -338,6 +387,23 @@ router.patch('/resource-requests/:id/return', adminOnly, async (req, res) => {
     res.json(populated);
   } catch (error) {
     res.status(500).json({ message: 'Unable to mark return', error: error.message });
+  }
+});
+
+router.get('/resource-logs', adminOnly, async (req, res) => {
+  try {
+    const logs = await ResourceLog.find()
+      .populate('requester', 'name email')
+      .populate({
+        path: 'resource',
+        populate: { path: 'category', select: 'name' }
+      })
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to fetch resource logs', error: error.message });
   }
 });
 

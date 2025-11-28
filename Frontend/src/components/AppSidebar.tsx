@@ -2,6 +2,7 @@ import {
   Home,
   Bell,
   Calendar,
+  CalendarDays,
   BookOpen,
   Users,
   User,
@@ -32,6 +33,7 @@ const navItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Announcements", url: "/announcements", icon: Bell },
   { title: "Calendar", url: "/calendar", icon: Calendar },
+  { title: "Events", url: "/events", icon: CalendarDays },
   { title: "Resources", url: "/resources", icon: BookOpen },
   { title: "Groups", url: "/groups", icon: Users },
   { title: "Events", url: "/events", icon: Zap },
@@ -54,13 +56,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <div
-          className={`flex items-center gap-2 px-4 py-6 ${
-            !open ? "justify-center" : ""
-          }`}
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary">
-            <GraduationCap className="h-6 w-6 text-primary-foreground" />
+        <div className={`flex items-center gap-2 px-4 py-6 ${!open ? 'justify-center' : ''}`}>
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white">
+            <img src="/svvv.png" alt="SVVV logo" className="h-12 w-12 object-contain" />
           </div>
           {open && (
             <div className="flex flex-col">
