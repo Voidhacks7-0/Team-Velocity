@@ -10,6 +10,7 @@ const studentRoutes = require('./routes/studentRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const commonRoutes = require('./routes/commonRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/student', studentRoutes);
 app.use('/faculty', facultyRoutes);
 app.use('/admin', adminRoutes);
 app.use('/common', commonRoutes);
+app.use('/events', eventRoutes);
 
 // Basic route to test server
 app.get('/', (req, res) => {

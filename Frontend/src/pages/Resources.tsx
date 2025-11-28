@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Calendar, MapPin, ShieldCheck, ClipboardList, Layers, ClipboardEdit, RefreshCw } from "lucide-react";
+import { BookOpen, Calendar, MapPin, ShieldCheck, ClipboardList, Layers, ClipboardEdit, RefreshCw, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api";
@@ -31,6 +31,7 @@ export default function Resources() {
   const [adminResources, setAdminResources] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [resourceLogs, setResourceLogs] = useState<any[]>([]);
   const [requestStatusFilter, setRequestStatusFilter] = useState<ResourceRequestStatus | "all">("pending");
 
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
@@ -95,6 +96,16 @@ export default function Resources() {
     }
   }, [token, isAdmin, requestStatusFilter]);
 
+  const fetchResourceLogs = useCallback(async () => {
+    if (!token || !isAdmin) return;
+    try {
+      const data = await apiRequest<any[]>(`/admin/resource-logs`, { token });
+      setResourceLogs(data);
+    } catch (error) {
+      console.error("Failed to load resource logs", error);
+    }
+  }, [token, isAdmin]);
+
   useEffect(() => {
     fetchResources();
     fetchMyBookings();
@@ -105,7 +116,8 @@ export default function Resources() {
     fetchAdminResources();
     fetchCategories();
     fetchRequests();
-  }, [isAdmin, fetchAdminResources, fetchCategories, fetchRequests]);
+    fetchResourceLogs();
+  }, [isAdmin, fetchAdminResources, fetchCategories, fetchRequests, fetchResourceLogs]);
 
   const handleBook = async (resourceId: string) => {
     try {
@@ -254,6 +266,58 @@ export default function Resources() {
       fetchMyBookings();
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
+    }
+  };
+
+  const handleEditResource = async (resource: any) => {
+    if (!token) return;
+    const name = window.prompt("Resource name", resource.name);
+    if (name === null) return;
+    const description = window.prompt("Description", resource.description || "") ?? resource.description;
+    const location = window.prompt("Location", resource.location || "") ?? resource.location;
+    const totalQuantityInput = window.prompt("Total quantity", String(resource.totalQuantity));
+    if (totalQuantityInput === null) return;
+    const totalQuantity = Number(totalQuantityInput);
+    if (Number.isNaN(totalQuantity) || totalQuantity < 0) {
+      toast({ variant: "destructive", title: "Invalid quantity" });
+      return;
+    }
+    const status = window.prompt("Status (available, maintenance, unavailable)", resource.status) ?? resource.status;
+    try {
+      await apiRequest(`/admin/resources/${resource._id}`, {
+        method: "PATCH",
+        token,
+        body: {
+          name,
+          description,
+          location,
+          totalQuantity,
+          status,
+        },
+      });
+      toast({ title: "Resource updated" });
+      fetchAdminResources();
+      fetchResources();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error updating resource", description: error.message });
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string) => {
+    if (!token) return;
+    if (!window.confirm("Delete this resource? This cannot be undone.")) {
+      return;
+    }
+    try {
+      await apiRequest(`/admin/resources/${resourceId}`, {
+        method: "DELETE",
+        token,
+      });
+      toast({ title: "Resource deleted" });
+      fetchAdminResources();
+      fetchResources();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Unable to delete resource", description: error.message });
     }
   };
 
@@ -538,7 +602,42 @@ export default function Resources() {
                           >
                             {resource.allowBooking ? "Pause bookings" : "Allow bookings"}
                           </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEditResource(resource)}>
+                            <Pencil className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDeleteResource(resource._id)}>
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </Button>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Resource Logs</CardTitle>
+                <CardDescription>See who currently holds each issued item.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {resourceLogs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No active loans right now.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {resourceLogs.map((log) => (
+                      <div key={log._id} className="rounded-lg border p-3 flex flex-col gap-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="font-medium">{log.resource?.name}</p>
+                          <Badge variant="outline">{log.requester?.name || "Unknown"}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Issued {log.issueDate ? new Date(log.issueDate).toLocaleDateString() : "—"} • Expected return{" "}
+                          {log.expectedReturnDate ? new Date(log.expectedReturnDate).toLocaleDateString() : "Not set"}
+                        </p>
                       </div>
                     ))}
                   </div>
