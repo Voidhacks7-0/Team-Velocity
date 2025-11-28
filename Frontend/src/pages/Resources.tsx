@@ -1,19 +1,48 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Calendar, MapPin, ShieldCheck, ClipboardList, Layers, ClipboardEdit, RefreshCw } from "lucide-react";
+import {
+  BookOpen,
+  Calendar,
+  MapPin,
+  ShieldCheck,
+  ClipboardList,
+  Layers,
+  ClipboardEdit,
+  RefreshCw,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api";
 
-type ResourceRequestStatus = "pending" | "approved" | "rejected" | "issued" | "returned";
+type ResourceRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "issued"
+  | "returned";
 
-const statusBadges: Record<ResourceRequestStatus, "default" | "secondary" | "outline" | "destructive"> = {
+const statusBadges: Record<
+  ResourceRequestStatus,
+  "default" | "secondary" | "outline" | "destructive"
+> = {
   pending: "secondary",
   approved: "outline",
   rejected: "destructive",
@@ -31,7 +60,9 @@ export default function Resources() {
   const [adminResources, setAdminResources] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
-  const [requestStatusFilter, setRequestStatusFilter] = useState<ResourceRequestStatus | "all">("pending");
+  const [requestStatusFilter, setRequestStatusFilter] = useState<
+    ResourceRequestStatus | "all"
+  >("pending");
 
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
   const [newResource, setNewResource] = useState({
@@ -77,7 +108,9 @@ export default function Resources() {
   const fetchCategories = useCallback(async () => {
     if (!token || !isAdmin) return;
     try {
-      const data = await apiRequest<any[]>("/admin/resource-categories", { token });
+      const data = await apiRequest<any[]>("/admin/resource-categories", {
+        token,
+      });
       setCategories(data);
     } catch (error) {
       console.error("Failed to load categories", error);
@@ -87,8 +120,13 @@ export default function Resources() {
   const fetchRequests = useCallback(async () => {
     if (!token || !isAdmin) return;
     try {
-      const query = requestStatusFilter && requestStatusFilter !== "all" ? `?status=${requestStatusFilter}` : "";
-      const data = await apiRequest<any[]>(`/admin/resource-requests${query}`, { token });
+      const query =
+        requestStatusFilter && requestStatusFilter !== "all"
+          ? `?status=${requestStatusFilter}`
+          : "";
+      const data = await apiRequest<any[]>(`/admin/resource-requests${query}`, {
+        token,
+      });
       setRequests(data);
     } catch (error) {
       console.error("Failed to load requests", error);
@@ -126,7 +164,11 @@ export default function Resources() {
       toast({ title: "Success", description: "Booking request submitted" });
       fetchMyBookings();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
@@ -146,7 +188,11 @@ export default function Resources() {
       toast({ title: "Category created" });
       fetchCategories();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
@@ -178,11 +224,18 @@ export default function Resources() {
       fetchAdminResources();
       fetchResources();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
-  const handleToggleAllowBooking = async (resourceId: string, allowBooking: boolean) => {
+  const handleToggleAllowBooking = async (
+    resourceId: string,
+    allowBooking: boolean
+  ) => {
     try {
       if (!token) {
         throw new Error("Missing session. Please sign in again.");
@@ -201,11 +254,18 @@ export default function Resources() {
       fetchAdminResources();
       fetchResources();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error updating resource", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error updating resource",
+        description: error.message,
+      });
     }
   };
 
-  const handleRequestStatusChange = async (id: string, status: "approved" | "rejected") => {
+  const handleRequestStatusChange = async (
+    id: string,
+    status: "approved" | "rejected"
+  ) => {
     try {
       const adminNote = window.prompt("Add note (optional)") || undefined;
       await apiRequest(`/admin/resource-requests/${id}/status`, {
@@ -217,13 +277,18 @@ export default function Resources() {
       fetchRequests();
       fetchMyBookings();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
   const handleIssueRequest = async (id: string) => {
     try {
-      const expectedReturnDate = window.prompt("Expected return date (YYYY-MM-DD)") || undefined;
+      const expectedReturnDate =
+        window.prompt("Expected return date (YYYY-MM-DD)") || undefined;
       await apiRequest(`/admin/resource-requests/${id}/issue`, {
         method: "PATCH",
         token,
@@ -234,7 +299,11 @@ export default function Resources() {
       fetchAdminResources();
       fetchMyBookings();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
@@ -253,7 +322,11 @@ export default function Resources() {
       fetchAdminResources();
       fetchMyBookings();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
     }
   };
 
@@ -272,22 +345,31 @@ export default function Resources() {
   }, [resources, categories, isAdmin]);
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Resources</h1>
-        <p className="text-muted-foreground mt-1">Book campus resources and equipment</p>
+        <p className="text-muted-foreground mt-1">
+          Book campus resources and equipment
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {resources.map((resource) => (
-          <Card key={resource._id} className="transition-smooth hover:shadow-lg">
+          <Card
+            key={resource._id}
+            className="transition-smooth rounded-lg hover:shadow-lg shadow-elevated"
+          >
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <BookOpen className="h-5 w-5 text-primary" />
-                <Badge variant="outline">{resource.category?.name || "General"}</Badge>
+                <Badge variant="outline">
+                  {resource.category?.name || "General"}
+                </Badge>
               </div>
               <CardTitle>{resource.name}</CardTitle>
-              <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
+              <CardDescription className="line-clamp-2">
+                {resource.description}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {resource.location && (
@@ -298,14 +380,21 @@ export default function Resources() {
               )}
               <div className="flex items-center justify-between mb-3 text-sm">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={resource.status === "available" ? "default" : "secondary"}>
+                <Badge
+                  variant={
+                    resource.status === "available" ? "default" : "secondary"
+                  }
+                >
                   {resource.status}
                 </Badge>
               </div>
               <Button
                 onClick={() => {
                   if (isAdmin) {
-                    handleToggleAllowBooking(resource._id, !resource.allowBooking);
+                    handleToggleAllowBooking(
+                      resource._id,
+                      !resource.allowBooking
+                    );
                   } else {
                     handleBook(resource._id);
                   }
@@ -340,12 +429,22 @@ export default function Resources() {
             ) : (
               <div className="space-y-2">
                 {bookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div>
                       <p className="font-medium">{booking.resource?.name}</p>
-                      <p className="text-sm text-muted-foreground">{booking.purpose}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {booking.purpose}
+                      </p>
                     </div>
-                    <Badge variant={statusBadges[booking.status as ResourceRequestStatus] || "secondary"}>
+                    <Badge
+                      variant={
+                        statusBadges[booking.status as ResourceRequestStatus] ||
+                        "secondary"
+                      }
+                    >
                       {booking.status}
                     </Badge>
                   </div>
@@ -365,7 +464,8 @@ export default function Resources() {
                 Admin Controls
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage inventory, categories, and allocation workflow directly from here.
+                Manage inventory, categories, and allocation workflow directly
+                from here.
               </p>
             </div>
 
@@ -373,7 +473,9 @@ export default function Resources() {
               <Card>
                 <CardHeader>
                   <CardTitle>Resource Categories</CardTitle>
-                  <CardDescription>Organize your inventory by category.</CardDescription>
+                  <CardDescription>
+                    Organize your inventory by category.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <form onSubmit={handleCreateCategory} className="space-y-3">
@@ -381,7 +483,12 @@ export default function Resources() {
                       <Label>Name</Label>
                       <Input
                         value={newCategory.name}
-                        onChange={(e) => setNewCategory((prev) => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setNewCategory((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         placeholder="Photography Equipment"
                         required
                       />
@@ -390,7 +497,12 @@ export default function Resources() {
                       <Label>Description</Label>
                       <Input
                         value={newCategory.description}
-                        onChange={(e) => setNewCategory((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) =>
+                          setNewCategory((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
                         placeholder="Optional"
                       />
                     </div>
@@ -405,11 +517,18 @@ export default function Resources() {
                   <div>
                     <p className="font-medium mb-2">Existing Categories</p>
                     {categories.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No categories yet.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No categories yet.
+                      </p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {categories.map((category) => (
-                          <Badge key={category._id} variant={category.isActive ? "outline" : "secondary"}>
+                          <Badge
+                            key={category._id}
+                            variant={
+                              category.isActive ? "outline" : "secondary"
+                            }
+                          >
                             {category.name}
                           </Badge>
                         ))}
@@ -422,7 +541,9 @@ export default function Resources() {
               <Card>
                 <CardHeader>
                   <CardTitle>Add Resource</CardTitle>
-                  <CardDescription>Create inventory items that can be reserved.</CardDescription>
+                  <CardDescription>
+                    Create inventory items that can be reserved.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleCreateResource} className="space-y-3">
@@ -430,7 +551,12 @@ export default function Resources() {
                       <Label>Name</Label>
                       <Input
                         value={newResource.name}
-                        onChange={(e) => setNewResource((prev) => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setNewResource((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         placeholder="4K Projector"
                         required
                       />
@@ -439,7 +565,12 @@ export default function Resources() {
                       <Label>Description</Label>
                       <Input
                         value={newResource.description}
-                        onChange={(e) => setNewResource((prev) => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) =>
+                          setNewResource((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
                         placeholder="Optional details"
                       />
                     </div>
@@ -447,7 +578,12 @@ export default function Resources() {
                       <Label>Category</Label>
                       <Select
                         value={newResource.categoryId}
-                        onValueChange={(value) => setNewResource((prev) => ({ ...prev, categoryId: value }))}
+                        onValueChange={(value) =>
+                          setNewResource((prev) => ({
+                            ...prev,
+                            categoryId: value,
+                          }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -465,7 +601,12 @@ export default function Resources() {
                       <Label>Location</Label>
                       <Input
                         value={newResource.location}
-                        onChange={(e) => setNewResource((prev) => ({ ...prev, location: e.target.value }))}
+                        onChange={(e) =>
+                          setNewResource((prev) => ({
+                            ...prev,
+                            location: e.target.value,
+                          }))
+                        }
                         placeholder="Innovation Lab"
                       />
                     </div>
@@ -476,7 +617,12 @@ export default function Resources() {
                           type="number"
                           min={1}
                           value={newResource.totalQuantity}
-                          onChange={(e) => setNewResource((prev) => ({ ...prev, totalQuantity: Number(e.target.value) }))}
+                          onChange={(e) =>
+                            setNewResource((prev) => ({
+                              ...prev,
+                              totalQuantity: Number(e.target.value),
+                            }))
+                          }
                           required
                         />
                       </div>
@@ -484,15 +630,24 @@ export default function Resources() {
                         <Label>Status</Label>
                         <Select
                           value={newResource.status}
-                          onValueChange={(value) => setNewResource((prev) => ({ ...prev, status: value }))}
+                          onValueChange={(value) =>
+                            setNewResource((prev) => ({
+                              ...prev,
+                              status: value,
+                            }))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="available">Available</SelectItem>
-                            <SelectItem value="maintenance">Maintenance</SelectItem>
-                            <SelectItem value="unavailable">Unavailable</SelectItem>
+                            <SelectItem value="maintenance">
+                              Maintenance
+                            </SelectItem>
+                            <SelectItem value="unavailable">
+                              Unavailable
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -509,11 +664,15 @@ export default function Resources() {
             <Card>
               <CardHeader>
                 <CardTitle>Inventory Overview</CardTitle>
-                <CardDescription>Track availability across all resources.</CardDescription>
+                <CardDescription>
+                  Track availability across all resources.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {adminResources.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No resources yet.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No resources yet.
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {adminResources.map((resource) => (
@@ -524,19 +683,34 @@ export default function Resources() {
                         <div>
                           <p className="font-medium">{resource.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {resource.availableQuantity}/{resource.totalQuantity} available • {resource.status}
+                            {resource.availableQuantity}/
+                            {resource.totalQuantity} available •{" "}
+                            {resource.status}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant={resource.allowBooking ? "outline" : "secondary"}>
-                            {resource.allowBooking ? "Requests open" : "Requests paused"}
+                          <Badge
+                            variant={
+                              resource.allowBooking ? "outline" : "secondary"
+                            }
+                          >
+                            {resource.allowBooking
+                              ? "Requests open"
+                              : "Requests paused"}
                           </Badge>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleToggleAllowBooking(resource._id, !resource.allowBooking)}
+                            onClick={() =>
+                              handleToggleAllowBooking(
+                                resource._id,
+                                !resource.allowBooking
+                              )
+                            }
                           >
-                            {resource.allowBooking ? "Pause bookings" : "Allow bookings"}
+                            {resource.allowBooking
+                              ? "Pause bookings"
+                              : "Allow bookings"}
                           </Button>
                         </div>
                       </div>
@@ -549,12 +723,21 @@ export default function Resources() {
             <Card>
               <CardHeader>
                 <CardTitle>Requests Workflow</CardTitle>
-                <CardDescription>Approve, issue, and close resource allocations.</CardDescription>
+                <CardDescription>
+                  Approve, issue, and close resource allocations.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Label>Status filter</Label>
-                  <Select value={requestStatusFilter} onValueChange={(value) => setRequestStatusFilter(value as ResourceRequestStatus | "all")}>
+                  <Select
+                    value={requestStatusFilter}
+                    onValueChange={(value) =>
+                      setRequestStatusFilter(
+                        value as ResourceRequestStatus | "all"
+                      )
+                    }
+                  >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
@@ -573,44 +756,75 @@ export default function Resources() {
                 </div>
 
                 {requests.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No requests for this filter.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No requests for this filter.
+                  </p>
                 ) : (
                   <div className="space-y-3">
                     {requests.map((request) => (
                       <div key={request._id} className="rounded-lg border p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <p className="font-medium">{request.resource?.name}</p>
+                            <p className="font-medium">
+                              {request.resource?.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">
-                              Requested by {request.requester?.name} • {request.purpose}
+                              Requested by {request.requester?.name} •{" "}
+                              {request.purpose}
                             </p>
                           </div>
-                          <Badge variant={statusBadges[request.status as ResourceRequestStatus] || "secondary"}>
+                          <Badge
+                            variant={
+                              statusBadges[
+                                request.status as ResourceRequestStatus
+                              ] || "secondary"
+                            }
+                          >
                             {request.status}
                           </Badge>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {request.status === "pending" && (
                             <>
-                              <Button size="sm" onClick={() => handleRequestStatusChange(request._id, "approved")}>
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handleRequestStatusChange(
+                                    request._id,
+                                    "approved"
+                                  )
+                                }
+                              >
                                 Approve
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleRequestStatusChange(request._id, "rejected")}
+                                onClick={() =>
+                                  handleRequestStatusChange(
+                                    request._id,
+                                    "rejected"
+                                  )
+                                }
                               >
                                 Reject
                               </Button>
                             </>
                           )}
                           {request.status === "approved" && (
-                            <Button size="sm" onClick={() => handleIssueRequest(request._id)}>
+                            <Button
+                              size="sm"
+                              onClick={() => handleIssueRequest(request._id)}
+                            >
                               Issue Resource
                             </Button>
                           )}
                           {request.status === "issued" && (
-                            <Button size="sm" variant="outline" onClick={() => handleReturnRequest(request._id)}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReturnRequest(request._id)}
+                            >
                               Mark Returned
                             </Button>
                           )}

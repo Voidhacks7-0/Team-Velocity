@@ -3,9 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { GraduationCap } from "lucide-react";
@@ -17,7 +29,9 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupFullName, setSignupFullName] = useState("");
-  const [signupRole, setSignupRole] = useState<'student' | 'faculty' | 'admin'>('student');
+  const [signupRole, setSignupRole] = useState<"student" | "faculty" | "admin">(
+    "student"
+  );
   const navigate = useNavigate();
   const { user, login, register } = useAuth();
 
@@ -77,8 +91,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
-      <Card className="w-full max-w-md shadow-elevated">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-6">
+      <Card className="w-full max-w-lg shadow-elevated">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-primary">
             <GraduationCap className="h-8 w-8 text-primary-foreground" />
@@ -94,7 +108,7 @@ export default function Auth() {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -123,7 +137,7 @@ export default function Auth() {
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
@@ -161,7 +175,10 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-role">I am a</Label>
-                  <Select value={signupRole} onValueChange={(value: any) => setSignupRole(value)}>
+                  <Select
+                    value={signupRole}
+                    onValueChange={(value: any) => setSignupRole(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

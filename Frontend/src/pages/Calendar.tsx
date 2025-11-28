@@ -1,10 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Clock, MapPin, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from "date-fns";
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameDay,
+  isToday,
+  addWeeks,
+  subWeeks,
+} from "date-fns";
 import { apiRequest } from "@/lib/api";
 
 export default function Calendar() {
@@ -17,7 +32,10 @@ export default function Calendar() {
     const weekStart = startOfWeek(selectedDate).toISOString();
     const weekEnd = endOfWeek(selectedDate).toISOString();
     try {
-      const data = await apiRequest<any[]>(`/common/events?start=${weekStart}&end=${weekEnd}`, { token });
+      const data = await apiRequest<any[]>(
+        `/common/events?start=${weekStart}&end=${weekEnd}`,
+        { token }
+      );
       setEvents(data);
     } catch (error) {
       console.error("Failed to load events", error);
@@ -34,7 +52,9 @@ export default function Calendar() {
   });
 
   const getEventsForDay = (date: Date) => {
-    return events.filter((event) => isSameDay(new Date(event.start_time), date));
+    return events.filter((event) =>
+      isSameDay(new Date(event.start_time), date)
+    );
   };
 
   const getEventTypeColor = (type: string) => {
@@ -52,21 +72,37 @@ export default function Calendar() {
   const canCreateEvent = user?.role === "faculty" || user?.role === "admin";
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Calendar</h1>
-          <p className="text-muted-foreground mt-1">View your schedule and upcoming events</p>
+          <p className="text-muted-foreground mt-1">
+            View your schedule and upcoming events
+          </p>
         </div>
-        {canCreateEvent && (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Event
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedDate((d) => subWeeks(d, 1))}
+          >
+            ← Prev
           </Button>
-        )}
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedDate((d) => addWeeks(d, 1))}
+          >
+            Next →
+          </Button>
+          {canCreateEvent && (
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          )}
+        </div>
       </div>
 
-      <Card>
+      <Card className="rounded-lg shadow-elevated">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
@@ -83,8 +119,10 @@ export default function Calendar() {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-[200px] rounded-lg border p-3 transition-smooth ${
-                    isDayToday ? "border-primary bg-primary/5" : "bg-card"
+                  className={`min-h-[200px] rounded-lg p-3 transition-smooth ${
+                    isDayToday
+                      ? "border-l-4 border-primary bg-primary/5"
+                      : "bg-card"
                   }`}
                 >
                   <div className="mb-2 text-center">
@@ -105,7 +143,9 @@ export default function Calendar() {
                         key={event.id}
                         className="rounded-md bg-background p-2 text-xs shadow-sm transition-smooth hover:shadow-md cursor-pointer"
                       >
-                        <div className="font-medium line-clamp-2 mb-1">{event.title}</div>
+                        <div className="font-medium line-clamp-2 mb-1">
+                          {event.title}
+                        </div>
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {format(new Date(event.start_time), "h:mm a")}
@@ -113,7 +153,9 @@ export default function Calendar() {
                         {event.location && (
                           <div className="flex items-center gap-1 text-muted-foreground mt-1">
                             <MapPin className="h-3 w-3" />
-                            <span className="line-clamp-1">{event.location}</span>
+                            <span className="line-clamp-1">
+                              {event.location}
+                            </span>
                           </div>
                         )}
                         <Badge
@@ -132,14 +174,16 @@ export default function Calendar() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-lg shadow-elevated">
         <CardHeader>
           <CardTitle>All Events This Week</CardTitle>
           <CardDescription>Complete list of scheduled events</CardDescription>
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No events scheduled</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No events scheduled
+            </p>
           ) : (
             <div className="space-y-4">
               {events.map((event) => (
@@ -151,17 +195,23 @@ export default function Calendar() {
                     <div className="text-xs font-medium text-muted-foreground">
                       {format(new Date(event.start_time), "MMM")}
                     </div>
-                    <div className="text-2xl font-bold">{format(new Date(event.start_time), "d")}</div>
+                    <div className="text-2xl font-bold">
+                      {format(new Date(event.start_time), "d")}
+                    </div>
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-semibold">{event.title}</h4>
-                      <Badge variant={getEventTypeColor(event.event_type) as any}>
+                      <Badge
+                        variant={getEventTypeColor(event.event_type) as any}
+                      >
                         {event.event_type}
                       </Badge>
                     </div>
                     {event.description && (
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {event.description}
+                      </p>
                     )}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">

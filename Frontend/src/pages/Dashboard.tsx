@@ -1,8 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Calendar, BookOpen, Users, TrendingUp, Clock } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  BookOpen,
+  Users,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -53,23 +66,60 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 space-y-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name?.split(' ')[0] || 'there'}!</h1>
-          <p className="text-muted-foreground mt-1">Here's what's happening on campus today</p>
+          <h1 className="text-3xl font-bold">
+            Welcome back, {user?.name?.split(" ")[0] || "there"}!
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Here's what's happening on campus today
+          </p>
         </div>
         <Badge variant="outline" className="text-sm px-3 py-1">
-          {user?.role || 'Loading...'}
+          {user?.role || "Loading..."}
         </Badge>
+      </div>
+      {/* Hero */}
+      <div className="rounded-lg shadow-elevated overflow-hidden">
+        <div className="bg-gradient-primary p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Campus at a glance</h2>
+              <p className="opacity-90 mt-1">
+                Quick access to announcements, events, resources, and groups
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => navigate("/announcements")}
+              >
+                View Announcements
+              </Button>
+              <Button variant="ghost" onClick={() => navigate("/calendar")}>
+                Open Calendar
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="transition-smooth hover:shadow-lg cursor-pointer" onClick={() => navigate("/announcements")}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Announcements</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
+        <Card
+          className="transition-smooth hover:shadow-lg cursor-pointer"
+          onClick={() => navigate("/announcements")}
+        >
+          <CardHeader className="flex items-center justify-between gap-4 pb-2">
+            <div className="flex items-center gap-3">
+              <div className="rounded-md bg-card p-2">
+                <Bell className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle className="text-sm font-medium">
+                Active Announcements
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.announcements}</div>
@@ -79,9 +129,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="transition-smooth hover:shadow-lg cursor-pointer" onClick={() => navigate("/calendar")}>
+        <Card
+          className="transition-smooth hover:shadow-lg cursor-pointer"
+          onClick={() => navigate("/calendar")}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Upcoming Events
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -92,25 +147,41 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="transition-smooth hover:shadow-lg cursor-pointer" onClick={() => navigate("/resources")}>
+        <Card
+          className="transition-smooth hover:shadow-lg cursor-pointer"
+          onClick={() => navigate("/resources")}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Bookings
+            </CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeBookings}</div>
-            <p className="text-xs text-muted-foreground mt-1">Pending or approved</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Pending or approved
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="transition-smooth hover:shadow-lg cursor-pointer" onClick={() => navigate("/groups")}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">My Groups</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card
+          className="transition-smooth hover:shadow-lg cursor-pointer"
+          onClick={() => navigate("/groups")}
+        >
+          <CardHeader className="flex items-center justify-between gap-4 pb-2">
+            <div className="flex items-center gap-3">
+              <div className="rounded-md bg-card p-2">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <CardTitle className="text-sm font-medium">My Groups</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.myGroups}</div>
-            <p className="text-xs text-muted-foreground mt-1">Collaboration spaces</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Collaboration spaces
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -123,7 +194,9 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           {recentAnnouncements.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No announcements yet</p>
+            <p className="text-sm text-muted-foreground">
+              No announcements yet
+            </p>
           ) : (
             <div className="space-y-4">
               {recentAnnouncements.map((announcement) => (
@@ -134,7 +207,9 @@ export default function Dashboard() {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold">{announcement.title}</h4>
-                      <Badge variant={getPriorityColor(announcement.priority) as any}>
+                      <Badge
+                        variant={getPriorityColor(announcement.priority) as any}
+                      >
                         {announcement.priority}
                       </Badge>
                     </div>
@@ -142,14 +217,19 @@ export default function Dashboard() {
                       {announcement.content}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      By {announcement.author?.full_name} • {format(new Date(announcement.created_at), 'MMM d, yyyy')}
+                      By {announcement.author?.full_name} •{" "}
+                      {format(new Date(announcement.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/announcements")}>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => navigate("/announcements")}
+          >
             View All Announcements
           </Button>
         </CardContent>
@@ -177,10 +257,15 @@ export default function Dashboard() {
                   <div className="flex-1 space-y-1">
                     <h4 className="font-semibold">{event.title}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(event.start_time), 'MMM d, yyyy • h:mm a')}
+                      {format(
+                        new Date(event.start_time),
+                        "MMM d, yyyy • h:mm a"
+                      )}
                     </p>
                     {event.location && (
-                      <p className="text-xs text-muted-foreground">📍 {event.location}</p>
+                      <p className="text-xs text-muted-foreground">
+                        📍 {event.location}
+                      </p>
                     )}
                   </div>
                   <Badge variant="outline">{event.event_type}</Badge>
@@ -188,7 +273,11 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-          <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/calendar")}>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => navigate("/calendar")}
+          >
             View Full Calendar
           </Button>
         </CardContent>

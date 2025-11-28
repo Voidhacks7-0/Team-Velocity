@@ -15,12 +15,17 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
         ref={ref}
         to={to}
         className={({ isActive, isPending }) =>
-          cn(className, isActive && activeClassName, isPending && pendingClassName)
+          cn(
+            "flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted",
+            className,
+            isActive && (activeClassName ?? "bg-primary/10 text-primary"),
+            isPending && (pendingClassName ?? "opacity-70")
+          )
         }
         {...props}
       />
     );
-  },
+  }
 );
 
 NavLink.displayName = "NavLink";

@@ -1,12 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Bell, Plus, Pin, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -33,7 +52,8 @@ export default function Announcements() {
       toast({
         variant: "destructive",
         title: "Unable to load announcements",
-        description: error.message || "Something went wrong while fetching announcements.",
+        description:
+          error.message || "Something went wrong while fetching announcements.",
       });
     }
   }, [token]);
@@ -95,14 +115,17 @@ export default function Announcements() {
       a.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const canCreateAnnouncement = user?.role === "faculty" || user?.role === "admin";
+  const canCreateAnnouncement =
+    user?.role === "faculty" || user?.role === "admin";
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Announcements</h1>
-          <p className="text-muted-foreground mt-1">Stay updated with campus news</p>
+          <p className="text-muted-foreground mt-1">
+            Stay updated with campus news
+          </p>
         </div>
         {canCreateAnnouncement && (
           <Dialog>
@@ -115,7 +138,9 @@ export default function Announcements() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Announcement</DialogTitle>
-                <DialogDescription>Share important updates with the campus community</DialogDescription>
+                <DialogDescription>
+                  Share important updates with the campus community
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -123,7 +148,12 @@ export default function Announcements() {
                   <Input
                     id="title"
                     value={newAnnouncement.title}
-                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewAnnouncement({
+                        ...newAnnouncement,
+                        title: e.target.value,
+                      })
+                    }
                     placeholder="Announcement title"
                   />
                 </div>
@@ -132,7 +162,12 @@ export default function Announcements() {
                   <Textarea
                     id="content"
                     value={newAnnouncement.content}
-                    onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
+                    onChange={(e) =>
+                      setNewAnnouncement({
+                        ...newAnnouncement,
+                        content: e.target.value,
+                      })
+                    }
                     placeholder="Write your announcement here..."
                     rows={5}
                   />
@@ -141,7 +176,12 @@ export default function Announcements() {
                   <Label htmlFor="priority">Priority</Label>
                   <Select
                     value={newAnnouncement.priority}
-                    onValueChange={(value) => setNewAnnouncement({ ...newAnnouncement, priority: value })}
+                    onValueChange={(value) =>
+                      setNewAnnouncement({
+                        ...newAnnouncement,
+                        priority: value,
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -154,7 +194,11 @@ export default function Announcements() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleCreateAnnouncement} disabled={isCreating} className="w-full">
+                <Button
+                  onClick={handleCreateAnnouncement}
+                  disabled={isCreating}
+                  className="w-full"
+                >
                   {isCreating ? "Creating..." : "Create Announcement"}
                 </Button>
               </div>
@@ -175,7 +219,7 @@ export default function Announcements() {
 
       <div className="space-y-4">
         {filteredAnnouncements.length === 0 ? (
-          <Card>
+          <Card className="rounded-lg shadow-elevated">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Bell className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No announcements found</p>
@@ -183,25 +227,40 @@ export default function Announcements() {
           </Card>
         ) : (
           filteredAnnouncements.map((announcement) => (
-            <Card key={announcement.id} className={announcement.is_pinned ? "border-primary" : ""}>
+            <Card
+              key={announcement.id}
+              className={`transition-smooth rounded-lg hover:shadow-lg ${
+                announcement.is_pinned ? "border-l-4 border-primary" : ""
+              }`}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      {announcement.is_pinned && <Pin className="h-4 w-4 text-primary" />}
+                      {announcement.is_pinned && (
+                        <Pin className="h-4 w-4 text-primary" />
+                      )}
                       <CardTitle>{announcement.title}</CardTitle>
                     </div>
                     <CardDescription>
-                      By {announcement.author?.full_name} • {format(new Date(announcement.created_at), "MMM d, yyyy 'at' h:mm a")}
+                      By {announcement.author?.full_name} •{" "}
+                      {format(
+                        new Date(announcement.created_at),
+                        "MMM d, yyyy 'at' h:mm a"
+                      )}
                     </CardDescription>
                   </div>
-                  <Badge variant={getPriorityColor(announcement.priority) as any}>
+                  <Badge
+                    variant={getPriorityColor(announcement.priority) as any}
+                  >
                     {announcement.priority}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground whitespace-pre-wrap">{announcement.content}</p>
+                <p className="text-foreground whitespace-pre-wrap">
+                  {announcement.content}
+                </p>
               </CardContent>
             </Card>
           ))
