@@ -152,6 +152,27 @@ const placeholderGroups = [
   }
 ];
 
+// bookings persist per server instance for demo purposes
+const bookings = [];
+
+const attachResource = (booking) => ({
+  ...booking,
+  resource: resources.find((resource) => resource.id === booking.resource_id) || null
+});
+
+// GET /common - Any logged-in user (student, faculty, or admin) can access
+router.get('/', authToken, (req, res) => {
+  res.json({
+    message: 'This is a common route accessible by all logged-in users',
+    user: {
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+});
+
+// GET /common/dashboard - Provide summary cards + key lists
 router.get('/dashboard', authToken, (req, res) => {
   res.json({
     stats: {

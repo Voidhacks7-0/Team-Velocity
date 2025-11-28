@@ -219,8 +219,10 @@ export default function Events() {
           events.map((event) => {
             const isPast = new Date(event.endsAt) < new Date();
             const isRegistered = event.attendees?.hasRegistered;
+            const hasCapacityLimit =
+              typeof event.capacity === "number" && event.capacity > 0;
             const remaining =
-              typeof event.capacity === "number" && typeof event.attendeesCount === "number"
+              hasCapacityLimit && typeof event.attendeesCount === "number"
                 ? Math.max(event.capacity - event.attendeesCount, 0)
                 : undefined;
 
@@ -252,7 +254,7 @@ export default function Events() {
                         {event.location}
                       </span>
                     )}
-                    {typeof event.capacity === "number" && (
+                    {hasCapacityLimit && (
                       <span className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
                         {remaining !== undefined ? `${remaining} spots left` : `${event.capacity} seats`}
@@ -261,13 +263,13 @@ export default function Events() {
                   </div>
                   {!isAdmin && (
                     <Button
-                      disabled={isPast || isRegistered || remaining === 0}
+                      disabled={isPast || isRegistered || (hasCapacityLimit && remaining === 0)}
                       onClick={() => handleRegister(event._id)}
                       className="w-full md:w-auto"
                     >
                       {isRegistered
                         ? "Registered"
-                        : remaining === 0
+                        : hasCapacityLimit && remaining === 0
                         ? "Full"
                         : isPast
                         ? "Event finished"
