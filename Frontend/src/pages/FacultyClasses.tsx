@@ -410,11 +410,20 @@ export default function FacultyClasses() {
               </TabsContent>
 
               <TabsContent value="timetable" className="space-y-4">
-                <h3 className="text-lg font-semibold">Class Timetable</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Class Timetable</h3>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/timetable/${selectedClass.id}`)}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    View/Edit Timetable
+                  </Button>
+                </div>
                 <Card>
                   <CardContent className="p-6">
                     <p className="text-muted-foreground">
-                      Timetable management coming soon...
+                      Click "View/Edit Timetable" to manage the class schedule.
                     </p>
                   </CardContent>
                 </Card>

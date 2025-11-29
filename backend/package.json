@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "create-faculty": "node scripts/createMockFaculty.js"
+    "create-faculty": "node scripts/createMockFaculty.js",
+    "create-students": "node scripts/createMockStudents.js"
   },
   "keywords": [
     "express",

@@ -19,6 +19,7 @@ try {
   var chatRoutes = require('./routes/chatRoutes');
   var classRoutes = require('./routes/classRoutes');
   var facultyClassRoutes = require('./routes/facultyClassRoutes');
+  var timetableRoutes = require('./routes/timetableRoutes');
   console.log('✅ All routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading routes:', error);
@@ -55,6 +56,7 @@ app.use('/forums', forumRoutes);
 app.use('/projects', projectRoutes);
 app.use('/chats', chatRoutes);
 app.use('/classes', classRoutes);
+app.use('/timetable', timetableRoutes);
 
 // Logging middleware (after routes)
 app.use((req, res, next) => {

@@ -57,63 +57,87 @@ const classSchema = new mongoose.Schema({
   }],
   timetable: {
     monday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }],
     tuesday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }],
     wednesday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }],
     thursday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }],
     friday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }],
     saturday: [{
+      time: String,
+      type: {
+        type: String,
+        enum: ['lecture', 'lab', 'break', 'lunch'],
+        default: 'lecture'
+      },
       subject: String,
       faculty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       },
-      startTime: String,
-      endTime: String,
       room: String
     }]
   },

@@ -48,6 +48,8 @@ const getNavItems = (role: string) => {
     baseItems.splice(5, 0, { title: "Classes", url: "/classes", icon: GraduationCap });
   } else if (role === "faculty") {
     baseItems.splice(5, 0, { title: "My Classes", url: "/my-classes", icon: GraduationCap });
+  } else if (role === "student") {
+    baseItems.splice(5, 0, { title: "My Classes", url: "/my-classes", icon: GraduationCap });
   }
 
   baseItems.push({ title: "Profile", url: "/profile", icon: User });

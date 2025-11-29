@@ -17,6 +17,10 @@ router.get('/', authToken, async (req, res) => {
     if (req.user.role === 'faculty') {
       filter['assignedFaculties.faculty'] = req.user._id;
     }
+    // Students can only see classes they are enrolled in
+    else if (req.user.role === 'student') {
+      filter['students'] = req.user._id;
+    }
 
     const classes = await Class.find(filter)
       .populate('assignedFaculties.faculty', 'name email role department')

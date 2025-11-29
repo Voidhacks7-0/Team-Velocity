@@ -33,7 +33,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Users, Plus, BookOpen, Calendar, GraduationCap } from "lucide-react";
+import { Users, Plus, BookOpen, Calendar, GraduationCap, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api";
@@ -66,8 +67,19 @@ interface Faculty {
   department: string;
 }
 
+interface AvailableStudent {
+  id: string;
+  name: string;
+  email: string;
+  department?: string;
+  phone?: string;
+}
+
+interface ClassStudent extends AvailableStudent {}
+
 export default function Classes() {
   const { token, user } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = user?.role === "admin";
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
@@ -88,6 +100,14 @@ export default function Classes() {
     subject: string;
     role: string;
   }>>([]);
+  const [isStudentDialogOpen, setIsStudentDialogOpen] = useState(false);
+  const [classStudents, setClassStudents] = useState<ClassStudent[]>([]);
+  const [availableStudents, setAvailableStudents] = useState<AvailableStudent[]>([]);
+  const [loadingClassStudents, setLoadingClassStudents] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [studentSearchTerm, setStudentSearchTerm] = useState("");
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [selectedClassName, setSelectedClassName] = useState("");
 
   const fetchClasses = useCallback(async () => {
     if (!token) return;
@@ -142,6 +162,48 @@ export default function Classes() {
     }
   }, [token, isAdmin]);
 
+  const fetchClassStudents = useCallback(async (classId: string) => {
+    if (!token || !classId) return;
+    setLoadingClassStudents(true);
+    try {
+      const data = await apiRequest<{ class_name: string; students: ClassStudent[] }>(
+        `/classes/${classId}/students`,
+        { token }
+      );
+      setClassStudents(data.students || []);
+      if (data.class_name) {
+        setSelectedClassName(data.class_name);
+      }
+    } catch (error: any) {
+      console.error("Failed to load class students", error);
+      toast({
+        variant: "destructive",
+        title: "Error Loading Students",
+        description: error.message || "Unable to load students for this class",
+      });
+    } finally {
+      setLoadingClassStudents(false);
+    }
+  }, [token]);
+
+  const fetchStudentDirectory = useCallback(async () => {
+    if (!token || !isAdmin) return;
+    setLoadingStudents(true);
+    try {
+      const data = await apiRequest<AvailableStudent[]>("/admin/users?role=student", { token });
+      setAvailableStudents(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      console.error("Failed to load student directory", error);
+      toast({
+        variant: "destructive",
+        title: "Error Loading Students",
+        description: error.message || "Unable to fetch student accounts. Please try again.",
+      });
+    } finally {
+      setLoadingStudents(false);
+    }
+  }, [token, isAdmin]);
+
   useEffect(() => {
     fetchClasses();
   }, [fetchClasses]);
@@ -157,7 +219,14 @@ export default function Classes() {
     if (isAssignOpen && isAdmin && faculties.length === 0) {
       fetchFaculties();
     }
-  }, [isAssignOpen, isAdmin]);
+  }, [isAssignOpen, isAdmin, faculties.length, fetchFaculties]);
+
+  useEffect(() => {
+    if (isStudentDialogOpen && isAdmin && selectedClass) {
+      fetchClassStudents(selectedClass);
+      fetchStudentDirectory();
+    }
+  }, [isStudentDialogOpen, isAdmin, selectedClass, fetchClassStudents, fetchStudentDirectory]);
 
   const handleCreateClass = async () => {
     try {
@@ -257,6 +326,61 @@ export default function Classes() {
       toast({
         variant: "destructive",
         title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
+  const openStudentDialog = (classItem: ClassItem) => {
+    setSelectedClass(classItem.id);
+    setSelectedClassName(classItem.name);
+    setIsStudentDialogOpen(true);
+  };
+
+  const filteredAvailableStudents = availableStudents.filter((student) => {
+    const isAlreadyInClass = classStudents.some((clsStudent) => clsStudent.id === student.id);
+    if (isAlreadyInClass) {
+      return false;
+    }
+    if (!studentSearchTerm) {
+      return true;
+    }
+    const term = studentSearchTerm.toLowerCase();
+    const name = student.name?.toLowerCase() || "";
+    const email = student.email?.toLowerCase() || "";
+    return name.includes(term) || email.includes(term);
+  });
+
+  const allFilteredSelected =
+    filteredAvailableStudents.length > 0 &&
+    filteredAvailableStudents.every((student) => selectedStudentIds.includes(student.id));
+
+  const handleAddStudentsToClass = async () => {
+    try {
+      if (!token || !selectedClass) {
+        throw new Error("Missing session or class selection");
+      }
+      if (selectedStudentIds.length === 0) {
+        throw new Error("Please select at least one student");
+      }
+
+      await apiRequest(`/classes/${selectedClass}/students`, {
+        method: "POST",
+        token,
+        body: { studentIds: selectedStudentIds },
+      });
+
+      toast({
+        title: "Students Added",
+        description: `${selectedStudentIds.length} student(s) have been enrolled in this class`,
+      });
+      setSelectedStudentIds([]);
+      await fetchClassStudents(selectedClass);
+      fetchClasses();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Unable to Add Students",
         description: error.message,
       });
     }
@@ -404,18 +528,40 @@ export default function Classes() {
                   )}
                 </div>
                 {isAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedClass(classItem.id);
-                      setIsAssignOpen(true);
-                    }}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Assign Faculty
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedClass(classItem.id);
+                          setIsAssignOpen(true);
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Assign Faculty
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate(`/timetable/${classItem.id}`)}
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        Timetable
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => openStudentDialog(classItem)}
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Manage Students ({classItem.student_count || 0})
+                    </Button>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -434,6 +580,188 @@ export default function Classes() {
           </Card>
         )}
       </div>
+
+      {isAdmin && (
+        <Dialog
+          open={isStudentDialogOpen}
+          onOpenChange={(open) => {
+            setIsStudentDialogOpen(open);
+            if (!open) {
+              setSelectedStudentIds([]);
+              setStudentSearchTerm("");
+              setClassStudents([]);
+              setSelectedClass(null);
+              setSelectedClassName("");
+            }
+          }}
+        >
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Manage Students</DialogTitle>
+              <DialogDescription>
+                {selectedClassName
+                  ? `Enroll students into ${selectedClassName}`
+                  : "Select a class to manage students"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              <section>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="font-semibold">Current Students</h3>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {classStudents.length} enrolled
+                  </span>
+                </div>
+                {loadingClassStudents ? (
+                  <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Loading students from backend...
+                  </div>
+                ) : classStudents.length === 0 ? (
+                  <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    No students enrolled in this class yet.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Department</TableHead>
+                        <TableHead>Phone</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {classStudents.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell className="font-medium">{student.name}</TableCell>
+                          <TableCell>{student.email}</TableCell>
+                          <TableCell>
+                            {student.department ? (
+                              <Badge variant="outline">{student.department}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">Not set</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{student.phone || "N/A"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </section>
+
+              <section className="space-y-4">
+                <div>
+                  <h3 className="font-semibold">Available Student Accounts</h3>
+                  <p className="text-sm text-muted-foreground">
+                    These accounts were created via the signup/login flow and are not yet part of this class.
+                  </p>
+                </div>
+                <Input
+                  placeholder="Search students by name or email..."
+                  value={studentSearchTerm}
+                  onChange={(e) => setStudentSearchTerm(e.target.value)}
+                />
+                <div className="border rounded-lg max-h-[320px] overflow-y-auto">
+                  {loadingStudents ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      Loading student accounts...
+                    </div>
+                  ) : filteredAvailableStudents.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      {studentSearchTerm
+                        ? "No students match your search."
+                        : "No new student accounts are available to add. Have students sign up from the login page first."}
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <input
+                              type="checkbox"
+                              checked={allFilteredSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStudentIds(filteredAvailableStudents.map((s) => s.id));
+                                } else {
+                                  setSelectedStudentIds([]);
+                                }
+                              }}
+                              aria-label="Select all students"
+                            />
+                          </TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Department</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAvailableStudents.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell>
+                              <input
+                                type="checkbox"
+                                checked={selectedStudentIds.includes(student.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedStudentIds((prev) =>
+                                      prev.includes(student.id) ? prev : [...prev, student.id]
+                                    );
+                                  } else {
+                                    setSelectedStudentIds((prev) =>
+                                      prev.filter((id) => id !== student.id)
+                                    );
+                                  }
+                                }}
+                                aria-label={`Select ${student.name}`}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell>{student.email}</TableCell>
+                            <TableCell>
+                              {student.department ? (
+                                <Badge variant="outline">{student.department}</Badge>
+                              ) : (
+                                <span className="text-muted-foreground">Not set</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedStudentIds.length} student(s) selected
+                  </p>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => selectedClass && navigate(`/classes/${selectedClass}/students`)}
+                      disabled={!selectedClass}
+                    >
+                      Open full page
+                    </Button>
+                    <Button
+                      className="flex-1 sm:flex-none"
+                      onClick={handleAddStudentsToClass}
+                      disabled={selectedStudentIds.length === 0}
+                    >
+                      Add Selected Students
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {isAdmin && (
         <Dialog open={isAssignOpen} onOpenChange={(open) => {

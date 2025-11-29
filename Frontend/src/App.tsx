@@ -19,7 +19,9 @@ import ForumPost from "./pages/ForumPost";
 import Projects from "./pages/Projects";
 import Chat from "./pages/Chat";
 import Classes from "./pages/Classes";
-import FacultyClasses from "./pages/FacultyClasses";
+import MyClasses from "./pages/MyClasses";
+import Timetable from "./pages/Timetable";
+import ClassStudents from "./pages/ClassStudents";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -47,7 +49,9 @@ const App = () => (
             <Route path="/chat" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
             <Route path="/classes" element={<ProtectedRoute><Layout><Classes /></Layout></ProtectedRoute>} />
-            <Route path="/my-classes" element={<ProtectedRoute><Layout><FacultyClasses /></Layout></ProtectedRoute>} />
+            <Route path="/my-classes" element={<ProtectedRoute><Layout><MyClasses /></Layout></ProtectedRoute>} />
+            <Route path="/timetable/:id" element={<ProtectedRoute><Layout><Timetable /></Layout></ProtectedRoute>} />
+            <Route path="/classes/:id/students" element={<ProtectedRoute><Layout><ClassStudents /></Layout></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
